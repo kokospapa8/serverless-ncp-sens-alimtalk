@@ -1,4 +1,4 @@
-#Servereless Simple & Easy Notification Service alimtalk
+# Servereless Simple & Easy Notification Service alimtalk
 네이버 클라우드 [Simple & Easy Notification Service](https://www.ncloud.com/product/applicationService/sens)의 알림톡 API를 AWS SAM을 사용해 서버리스로 배포할 수 있는 템플릿입니다.
 AWS Lambda의 [Asnychronous invocation](https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/invocation-async.html)을 사용해 백엔드 서버에서 
 비동기적으로 알림을 보냅니다.
