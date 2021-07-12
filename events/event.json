@@ -1,0 +1,17 @@
+{
+  "template_code": "test001",
+  "payload": [
+        {
+            "countryCode":"82",
+            "to":"01012341234",
+            "content": "test"
+
+        },
+        {
+            "countryCode":"82",
+            "to":"01012341235",
+            "content": "test"
+
+        }
+  ]
+}

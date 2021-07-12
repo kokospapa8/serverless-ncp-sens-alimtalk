@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Serverelss NCP Simple & Easy Notification Service
+  카카오 알림톡
+
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 5
+
+Parameters:
+  PLUS_FIREND_ID:
+    Type: String
+    Default: @kakao
+    Description: 카카오톡 채널명 ((구)플러스친구 아이디)
+  SERVICE_ID:
+    Type: String
+    Default: ""
+    Description: 프로젝트 등록 시 발급받은 서비스 아이디
+  NAVER_ACCESS_KEY:
+    Type: String
+    Default: ""
+    Description: 포탈 또는 Sub Account에서 발급받은 Access Key ID
+  NAVER_SECRET_KEY:
+    Type: String
+    Default: ""
+    Description: 포탈 또는 Sub Account에서 발급받은 Access Key ID
+
+
+Resources:
+  SensAlimtalkFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: alimtalk/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      DeadLetterQueue:
+        Type: SNS
+        TargetArn: !Ref DlqTopic
+      Description: NCP Sens Alimtalk Function
+      EventInvokeConfig:
+        MaximumEventAgeInSeconds: 60
+        MaximumRetryAttempts: 2
+      FunctionName: SensAlimtalkFunction
+      Policies:
+        - AWSLambdaExecute
+        - AWSLambdaRole
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - sns:Publish
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - events:PutEvents
+              Resource: '*'
+      Environment:
+        Variables:
+          SERVICE_ID: !Ref SERVICE_ID
+          NAVER_ACCESS_KEY: !Ref NAVER_ACCESS_KEY
+          NAVER_SECRET_KEY: !Ref NAVER_SECRET_KEY
+          PLUS_FIREND_ID: !Ref PLUS_FIREND_ID
+
+  DlqTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: SensAlimtalkDlqTopic
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  SensAlimtalkFunction:
+    Description: "NCP Sens Alimtalk Function"
+    Value: !GetAtt SensAlimtalkFunction.Arn
