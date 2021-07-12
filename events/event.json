@@ -1,6 +1,6 @@
 {
   "template_code": "test001",
-  "payload": [
+  "messages": [
         {
             "countryCode":"82",
             "to":"01012341234",

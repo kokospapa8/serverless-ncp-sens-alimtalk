@@ -1,145 +1,164 @@
 #Servereless Simple & Easy Notification Service alimtalk
+네이버 클라우드 [Simple & Easy Notification Service](https://www.ncloud.com/product/applicationService/sens)의 알림톡 API를 AWS SAM을 사용해 서버리스로 배포할 수 있는 템플릿입니다.
+AWS Lambda의 [Asnychronous invocation](https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/invocation-async.html)을 사용해 백엔드 서버에서 
+비동기적으로 알림을 보냅니다.
 
 
-# SAm env
-# sens
-# env
-# template creaking
-# how to invoke
-## payload
-
-# build, deploy
+# 네이버 클라우드 프로젝트 및 카카오 채널 생성
+- [프로젝트 생성](https://console.ncloud.com/sens/project) :생성후 서비스 ID 저장
+- [카카오톡 채널 생성](https://guide.ncloud-docs.com/docs/ko/sens-sens-1-5) : 생성후 카카오톡 채널 아아디 저장 -> @kakaoid
+- [알림톡 템플릿 생성](https://console.ncloud.com/sens/kakao-alimtalk-template) : 템플릿 코드 저장
+- [계정 인증키 생(https://www.ncloud.com/mypage/manage/authkey) : Access Key ID 및 Secert Key 저장
 
 
-Screen shot
+# 빌드 및 배포 환경 설정
+## AWS CLI 
+아래부터는 MAC에서 설치및 배포 방법을 설명합니다 윈도우등 다른 OS에서는 [AWS SAM 문서](https://docs.aws.amazon.com/ko_kr/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)를 참고하세요.
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+brew tap aws/tap
+brew install aws-sam-cli
+```
+
+## AWS 자격증명 설정
+[설정 문서참조](https://docs.aws.amazon.com/ko_kr/serverless-application-model/latest/developerguide/serverless-getting-started-set-up-credentials.html)
+
+```
+$ aws configure
+AWS Access Key ID [None]: your_access_key_id
+AWS Secret Access Key [None]: your_secret_access_key
+Default region name [None]: 
+Default output format [None]: 
+```
+
+## python 환경 
+```
+curl https://pyenv.run | bash
+exec "$SHELL" 
+pyenv install 3.8.8
+pyenv virtualenv 3.8.8 serverless-sense-alimtalk
+pyenv activate serverless-sense-alimtalk
+pip install -r checkplus/requirements.txt 
+```
+
+# 빌드, 로컬테스트, 배포
+## 빌드
+```
+sam build
+```
+## 로컬 test 
+docker엔진이 설치 되어있어야 합니다.
+event.json의 template code와 message를 등록한 포맷에 맞게 수정해야합니다. 메시지 발송시의 payload에 대한 자세한 설명은 [네이버 문서](https://api.ncloud-docs.com/docs/ko/ai-application-service-sens-alimtalkv2)를 확인하세요.
+```
+event.json
+
+{
+  "template_code": "<템플릿 코드>",
+  "payload": [
+        {
+            "countryCode":"82",
+            "to":"01012341234",
+            "content": "test"
+
+        },
+        {
+            "countryCode":"82",
+            "to":"01012341235",
+            "content": "test"
+
+        }
+  ]
+}
 
 
+```
+environment 설정도 변경해야합니다. 
+```
+  PLUS_FIREND_ID:
+    Type: String
+    Default: "@kakao"
+    Description: 카카오톡 채널명 ((구)플러스친구 아이디)
+  SERVICE_ID:
+    Type: String
+    Default: ""
+    Description: 프로젝트 등록 시 발급받은 서비스 아이디
+  NAVER_ACCESS_KEY:
+    Type: String
+    Default: ""
+    Description: 포탈 또는 Sub Account에서 발급받은 Access Key ID
+  NAVER_SECRET_KEY:
+    Type: String
+    Default: ""
+    Description: 포탈 또는 Sub Account에서 발급받은 Access Key ID
 
-This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
+env.json
+{
+  "Parameters": {
+    "PLUS_FIREND_ID": "",
+    "SERVICE_ID": "",
+    "NAVER_ACCESS_KEY": "",
+    "NAVER_SECRET_KEY": ""
 
-- hello_world - Code for the application's Lambda function.
-- events - Invocation events that you can use to invoke the function.
-- tests - Unit tests for the application code. 
-- template.yaml - A template that defines the application's AWS resources.
+  }
+}
 
-The application uses several AWS resources, including Lambda functions and an API Gateway API. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
+```
+다음 명령어로 로컬에서 실행가능합니다.  
 
-If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.  
-The AWS Toolkit is an open source plug-in for popular IDEs that uses the SAM CLI to build and deploy serverless applications on AWS. The AWS Toolkit also adds a simplified step-through debugging experience for Lambda function code. See the following links to get started.
+```
+sam local invoke -e events/event.json -n env.json
+```
 
-* [CLion](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [GoLand](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [IntelliJ](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [WebStorm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [Rider](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [PhpStorm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [PyCharm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [RubyMine](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [DataGrip](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [VS Code](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/welcome.html)
-* [Visual Studio](https://docs.aws.amazon.com/toolkit-for-visual-studio/latest/user-guide/welcome.html)
 
-## Deploy the sample application
-
-The Serverless Application Model Command Line Interface (SAM CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
-
-To use the SAM CLI, you need the following tools.
-
-* SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
-* [Python 3 installed](https://www.python.org/downloads/)
-* Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
-
-To build and deploy your application for the first time, run the following in your shell:
-
-```bash
-sam build --use-container
+배포
+```
 sam deploy --guided
 ```
 
-The first command will build the source of your application. The second command will package and deploy your application to AWS, with a series of prompts:
+배포후 lambda configuration의 환경변수를 위에서 저장한 대로 설정해줘야한다.
+```
+  PLUS_FIREND_ID:
+    Type: String
+    Default: "@kakao"
+    Description: 카카오톡 채널명 ((구)플러스친구 아이디)
+  SERVICE_ID:
+    Type: String
+    Default: ""
+    Description: 프로젝트 등록 시 발급받은 서비스 아이디
+  NAVER_ACCESS_KEY:
+    Type: String
+    Default: ""
+    Description: 포탈 또는 Sub Account에서 발급받은 Access Key ID
+  NAVER_SECRET_KEY:
+    Type: String
+    Default: ""
+    Description: 포탈 또는 Sub Account에서 발급받은 Access Key ID
 
-* **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
-* **AWS Region**: The AWS region you want to deploy your app to.
-* **Confirm changes before deploy**: If set to yes, any change sets will be shown to you before execution for manual review. If set to no, the AWS SAM CLI will automatically deploy application changes.
-* **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modifies IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
-* **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
-
-You can find your API Gateway Endpoint URL in the output values displayed after deployment.
-
-## Use the SAM CLI to build and test locally
-
-Build your application with the `sam build --use-container` command.
-
-```bash
-daas-slack$ sam build --use-container
 ```
 
-The SAM CLI installs dependencies defined in `hello_world/requirements.txt`, creates a deployment package, and saves it in the `.aws-sam/build` folder.
-
-Test a single function by invoking it directly with a test event. An event is a JSON document that represents the input that the function receives from the event source. Test events are included in the `events` folder in this project.
-
-Run functions locally and invoke them with the `sam local invoke` command.
-
-```bash
-daas-slack$ sam local invoke HelloWorldFunction --event events/event.json
+# BE에서 lambda 호출
+python boto3 예제
 ```
 
-The SAM CLI can also emulate your application's API. Use the `sam local start-api` to run the API locally on port 3000.
+    payload = {
+      "template_code": "test001",
+      "messages": [
+            {
+                "countryCode": "82",
+                "to": "01012341234"
+                "content": "test message"
 
-```bash
-daas-slack$ sam local start-api
-daas-slack$ curl http://localhost:3000/
+            }
+      ]
+    }
+    lambda_client = boto3.client('lambda', region_name=settings.AWS_DEFAULT_REGION)
+    ret = lambda_client.invoke(
+        FunctionName=settings.LAMBDA_FUNCTION_NAMES['NotificaitonKakao'],
+        InvocationType="DryRun" if settings.ENV == "test" else "Event",
+        Payload=json.dumps(payload)
+    )
+
 ```
 
-The SAM CLI reads the application template to determine the API's routes and the functions that they invoke. The `Events` property on each function's definition includes the route and method for each path.
 
-```yaml
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            Path: /hello
-            Method: get
-```
 
-## Add a resource to your application
-The application template uses AWS Serverless Application Model (AWS SAM) to define application resources. AWS SAM is an extension of AWS CloudFormation with a simpler syntax for configuring common serverless application resources such as functions, triggers, and APIs. For resources not included in [the SAM specification](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md), you can use standard [AWS CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html) resource types.
-
-## Fetch, tail, and filter Lambda function logs
-
-To simplify troubleshooting, SAM CLI has a command called `sam logs`. `sam logs` lets you fetch logs generated by your deployed Lambda function from the command line. In addition to printing the logs on the terminal, this command has several nifty features to help you quickly find the bug.
-
-`NOTE`: This command works for all AWS Lambda functions; not just the ones you deploy using SAM.
-
-```bash
-daas-slack$ sam logs -n HelloWorldFunction --stack-name daas-slack --tail
-```
-
-You can find more information and examples about filtering Lambda function logs in the [SAM CLI Documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-logging.html).
-
-## Tests
-
-Tests are defined in the `tests` folder in this project. Use PIP to install the test dependencies and run tests.
-
-```bash
-daas-slack$ pip install -r tests/requirements.txt --user
-# unit test
-daas-slack$ python -m pytest tests/unit -v
-# integration test, requiring deploying the stack first.
-# Create the env variable AWS_SAM_STACK_NAME with the name of the stack we are testing
-daas-slack$ AWS_SAM_STACK_NAME=<stack-name> python -m pytest tests/integration -v
-```
-
-## Cleanup
-
-To delete the sample application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
-
-```bash
-aws cloudformation delete-stack --stack-name daas-slack
-```
-
-## Resources
-
-See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html) for an introduction to SAM specification, the SAM CLI, and serverless application concepts.
-
-Next, you can use AWS Serverless Application Repository to deploy ready to use Apps that go beyond hello world samples and learn how authors developed their applications: [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/)

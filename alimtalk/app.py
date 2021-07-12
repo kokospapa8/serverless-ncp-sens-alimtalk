@@ -12,7 +12,8 @@ PLUS_FIREND_ID = os.environ['PLUS_FIREND_ID']
 
 
 def lambda_handler(event, context):
-    # print("Received payload: " + json.dumps(event))
+    print(os.environ)
+    print(event)
     messages = event["messages"]
     template_code = event["template_code"]
 

@@ -13,7 +13,7 @@ Globals:
 Parameters:
   PLUS_FIREND_ID:
     Type: String
-    Default: @kakao
+    Default: "@kakao"
     Description: 카카오톡 채널명 ((구)플러스친구 아이디)
   SERVICE_ID:
     Type: String
